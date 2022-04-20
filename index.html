@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+    />
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="css.css" />
+  </head>
+  <body>
+    <div id="container">
+      <div class="head">
+        <h1>
+          My News
+          <button class="fa fa-search" onclick="openSearch()"></button>
+        </h1>
+      </div>
+      <ul id="modal">
+        <li>
+          <span id="close"><b>&times;</b></span>
+        </li>
+        <li><b>Keywords</b></li>
+        &nbsp;
+        <li><input type="text" id="keywords" /></li>
+        &nbsp;
+        <li>
+          <button type="submit" id="clickSearch"><b>Search</b></button>
+        </li>
+      </ul>
+      <div id="loading">
+        <img src="ajax-loader.gif" alt="Loading..." />
+      </div>
+      <div id="contentPlace"></div>
+    </div>
+
+    <script text="text/javascript">
+      //Syntax ajax qua API để lấy data//
+      $.ajax(
+        "https://gnews.io/api/v4/top-headlines?&token=be2f5f666db171345b1c661bcb9d9449&lang=en",
+        {
+          dataType: "json", //Dạng dữ liệu//
+          timeout: 6000, //thời gian đợi trả về kết quả//
+          //Tạo logo loading trước khi trả về kết quả//
+          beforeSend: function () {
+            $(document).ajaxStart(function () {
+              $("#loading").show();
+            });
+          },
+          success: function (data) {
+            $("#loading").hide(); //Ẩn loading//
+            var hienThi_Html = ``;
+            $.each(data.articles, function (index, value) {
+              hienThi_Html += `
+                    <div class ="main">
+                        <div class = "img col-md-5">
+                            <img src = "${value.image}" width = "100%">
+                        </div>
+                        <div class = "content col-md-7">
+                             <a href ="${value.url}" target ="_blank"><b>${value.title}</b></a> </br></br>
+                             ${value.publishedAt} </br></br>
+                             ${value.description}</br>                                
+                        </div>
+                    </div>
+                        `;
+            });
+            $("#contentPlace").html(hienThi_Html);
+          },
+          error: function (err) {
+            $("#contentPlace").html("<h1>Please reload the page</h1>");
+          },
+        }
+      );
+      //Hiển thị thanh tìm kiếm modal khi click vào iconSearch//
+      function openSearch() {
+        const showModal = document.getElementById("modal");
+        const blurContentPlace = document.getElementById("contentPlace");
+        blurContentPlace.style.opacity = 0.5;
+        showModal.style.display = "flex";
+      }
+      //đóng modal khi click vào X//
+      $("#close").click(function () {
+        $("#modal").hide();
+        $("#contentPlace").css({ opacity: 1 });
+      });
+
+      //Nhập Keyword và search//
+      $("#clickSearch").click(function () {
+        var key = $("#keywords").val(); //lấy giá trị của keywords//
+        //gán giá trị keywords vào URL//
+        $.ajax(
+          "https://gnews.io/api/v4/search?q=" +
+            key +
+            "&token=be2f5f666db171345b1c661bcb9d9449&lang=en",
+          {
+            dataType: "json",
+            timeout: 3000,
+            //Tạo loading//
+            beforeSend: function () {
+              $(document).ajaxStart(function () {
+                $("#loading").show();
+              });
+            },
+            success: function (data) {
+              $("#loading").hide();
+              var hienThi_Html = ``;
+              $.each(data.articles, function (index, news) {
+                hienThi_Html += `
+                        <div class ="main">
+                            <div class = "img col-md-5">
+                                <img src = "${news.image}" width = "100%">
+                            </div>
+                            <div class = "content col-md-7">
+                                <a href ="${news.url}" target ="_blank"><b>${news.title}</b></a> </br></br>
+                                ${news.publishedAt} </br></br>
+                                ${news.description}</br>                                
+                            </div>
+                        </div>
+                            `;
+              });
+              $("#contentPlace").html(hienThi_Html);
+            },
+            error: function (err) {
+              $("#contentPlace").html("<h1>ERROR</h1>");
+            },
+          }
+        );
+        //Ẩn loading//
+        $("#modal").hide();
+        $("#contentPlace").css({ opacity: 1 });
+      });
+    </script>
+  </body>
+</html>
